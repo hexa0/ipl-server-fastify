@@ -1,0 +1,18 @@
+// AppConfig.d.ts
+{
+	// SiteStructure.d.ts
+	"structure": {
+		// change the landing page here, leave as null if this app shouldn't set that
+		"landingPageRoute": null,
+
+		// set which routes should be sent to what static folders
+		"pathMap": {
+			// ipl
+			"ipl": "",
+
+			// error pages
+			"404": "error/404",
+			"401": "error/401"
+		}
+	}
+}

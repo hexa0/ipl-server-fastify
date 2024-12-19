@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="/ipl/folderIndex/main.css" />
+		<link
+			rel="icon"
+			type="image/x-icon"
+			href="/ipl/folderIndex/icon/folder"
+		/>
+
+		<title>Folder Index</title>
+	</head>
+
+	<body>
+		<div class="list">listDivContents</div>
+		<video class="backgroundVideo" autoplay muted loop preload disablePictureInPicture tabindex="-1">
+			<source
+				src="/ipl/folderIndex/video/background.mp4"
+				type="video/mp4"
+			/>
+		</video>
+
+		<script>
+			function reverseString(str) {
+				var newString = "";
+				for (var i = str.length - 1; i >= 0; i--) {
+					newString += str[i];
+				}
+				return newString;
+			}
+
+			// easter egg for people who open the console
+			console.log("cdvdman Init");
+			console.log("rmreset start");
+			console.log("rmreset end");
+			console.log("clearspu: completed");
+			console.log("Pad Driver for OSD (2000/12/05 18:05) 392, 128");
+			console.log("IOP Realtime Kernel Ver.0.9.1");
+			console.log(
+				reverseString(
+					".cnI tnemniatretnE retupmoC ynoS )C( 9991 thgirypoC    "
+				)
+			); // reversed incase this gets scraped and results in a false takendown over a log message LOL
+
+			let popStateId = 0;
+			let listDiv = document.getElementsByClassName("list")[0];
+
+			const base = document.createElement("base");
+			document.getElementsByTagName("head")[0].appendChild(base);
+
+			function updateListDiv(newContents) {
+				const oldListDiv = listDiv;
+
+				oldListDiv.classList.add("list-disappear");
+				oldListDiv.setAttribute("tabindex", "-9999");
+				setTimeout(() => {
+					oldListDiv.remove();
+				}, 250);
+
+				const newListDiv = document.createElement("div");
+				newListDiv.classList.add("list");
+				newListDiv.innerHTML = newContents;
+				document.body.appendChild(newListDiv);
+				listDiv = newListDiv;
+			}
+
+			function getRelativeHref(linkElement) {
+				const currentUrl = new URL(window.location);
+				const targetUrl = new URL(linkElement.href, currentUrl);
+
+				return targetUrl.toString();
+			}
+
+			function escapeHtml(html) {
+				var text = document.createTextNode(html);
+				var p = document.createElement("p");
+				p.appendChild(text);
+				return p.innerHTML;
+			}
+
+			function redirect(link) {
+				let soundToPlay = "uiAdvance.ogg";
+
+				switch (link.classList[1]) {
+					case "soundFileOpen":
+						soundToPlay = "uiOpen.ogg";
+						break;
+
+					case "soundBack":
+						soundToPlay = "uiReturn.ogg";
+						break;
+
+					default:
+						soundToPlay = "uiAdvance.ogg";
+						break;
+				}
+
+				new Audio("/ipl/folderIndex/sound/" + soundToPlay).play();
+
+				const targetUrl = getRelativeHref(link);
+
+				const fetchUrl = new URL(targetUrl);
+				fetchUrl.searchParams.set("listDivContentsOnly", "1");
+				fetchUrl.searchParams.set("ignoreIndex", "1");
+				const redirectUrl = new URL(targetUrl);
+				redirectUrl.searchParams.delete("listDivContentsOnly");
+				if (!redirectUrl.searchParams.has("ignoreIndex")) {
+					redirectUrl.searchParams.set("ignoreIndex", "1");
+				}
+
+				if (link.classList.contains("soundFileOpen")) {
+					const iframeContent = `<div class="center"><iframe src="${escapeHtml(
+						redirectUrl.toString()
+					)}" frameborder="0"></div>`;
+
+					popStateId++;
+
+					window.history.pushState(
+						{ id: popStateId, view: iframeContent },
+						"",
+						redirectUrl
+					);
+					base.href = redirectUrl;
+					updateListDiv(iframeContent);
+				} else {
+					fetch(fetchUrl).then((fetched) => {
+						fetched.text().then((newListDivContents) => {
+							popStateId++;
+
+							window.history.pushState(
+								{ id: popStateId, view: newListDivContents },
+								"",
+								redirectUrl
+							);
+							base.href = redirectUrl;
+							updateListDiv(newListDivContents);
+							listenForLinkEvents();
+						});
+					});
+				}
+			}
+
+			function listenForLinkEvents(init) {
+				const links = listDiv.querySelectorAll("a");
+				let hoveredLink = null;
+				let firstLink = undefined;
+
+				links.forEach((link) => {
+					if (!firstLink) {
+						firstLink = link;
+					}
+
+					link.addEventListener("click", function (event) {
+						hoveredLink = link;
+						if (link.classList.contains("fileLink")) {
+							event.preventDefault();
+							redirect(link);
+						}
+					});
+
+					setTimeout(() => {
+						link.addEventListener("mouseover", function (event) {
+							if (hoveredLink !== link) {
+								new Audio(
+									"/ipl/folderIndex/sound/uiMove.ogg"
+								).play();
+							}
+							hoveredLink = link;
+						});
+
+						link.addEventListener("focus", function (event) {
+							if (hoveredLink !== link) {
+								new Audio(
+									"/ipl/folderIndex/sound/uiMove.ogg"
+								).play();
+							}
+							hoveredLink = link;
+						});
+					}, 16);
+				});
+
+				if (!init && firstLink) {
+					firstLink.focus();
+				}
+			}
+
+			listenForLinkEvents(true);
+
+			window.addEventListener("popstate", (e) => {
+				if (e.state) {
+					base.href = window.location;
+					updateListDiv(e.state.view);
+					listenForLinkEvents();
+
+					if (popStateId > e.state.id) {
+						new Audio("/ipl/folderIndex/sound/uiReturn.ogg").play();
+					} else {
+						new Audio(
+							"/ipl/folderIndex/sound/uiAdvance.ogg"
+						).play();
+					}
+
+					popStateId = e.state.id;
+				}
+			});
+
+			window.history.pushState(
+				{
+					id: popStateId,
+					view: listDiv.innerHTML,
+				},
+				"",
+				window.location
+			);
+		</script>
+	</body>
+</html>

@@ -1,0 +1,35 @@
+{
+	// HTTP and HTTPS ports
+	"network": {
+		"port": {
+			"http": 8080,
+			"https": 4343
+		}
+	},
+
+	"authentication": {
+		"api": {
+			// a key for requests that are set to require it
+			"key": "authkey"
+		}
+	},
+
+	"mimeOverrides": {
+		/*
+			place forced mime types here, for formats where the data can get confused
+			or incorrectly assigned by wasmagic.
+			wasmagic works by guessing the type from the data not the extension,
+			which means that lots of plain text formats (json,html,xml,css, etc.) can fail,
+			an example of this would be svg where if the headers aren't right
+			it gets assumed to be an xml file, which breaks embedding the image
+		*/
+
+		"txt": "text/plain; charset=utf-8",
+		"html": "text/html; charset=utf-8",
+		"css": "text/css; charset=utf-8",
+		"svg": "image/svg+xml; charset=utf-8",
+		"js": "text/javascript; charset=utf-8",
+		"wasm": "application/wasm",
+		"json": "application/json; charset=utf-8"
+	}
+}

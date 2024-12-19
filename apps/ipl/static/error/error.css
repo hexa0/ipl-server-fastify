@@ -1,0 +1,58 @@
+@font-face {
+	font-family: monaspace;
+	src: url("https://cdn.jsdelivr.net/gh/githubnext/monaspace@v1.000/fonts/webfonts/MonaspaceNeon-Regular.woff")
+		format(woff2);
+}
+
+/* Dashed border */
+hr.dashed {
+	border-top: 3px dashed #bbb;
+}
+
+/* Dotted border */
+hr.dotted {
+	border-top: 3px dotted #bbb;
+}
+
+/* Solid border */
+hr.solid {
+	border-top: 3px solid #bbb;
+}
+
+/* Rounded border */
+hr.rounded {
+	border-top: 8px solid #bbb;
+	border-radius: 5px;
+}
+
+.content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	z-index: 2;
+	width: 100%;
+	height: 100%;
+}
+
+h1 {
+	padding: 10%;
+	font-size: 50px;
+	font-family: monaspace;
+	color: rgb(255, 255, 255);
+}
+
+body {
+	background-color: #00010E;
+}
+
+@keyframes error-appear {
+	to {
+		opacity: 100%;
+	}
+}
+
+.error-appear {
+	opacity: 0%;
+	animation: error-appear 1s ease forwards;
+}
