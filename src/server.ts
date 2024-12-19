@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { ServerConfig } from "./lib/var/serverConfig";
 
 export const fastifyServer = Fastify({
-	// logger: true,
+	logger: true,
 	http2: true,
 	https: {
 		key: readFileSync("ssl/key.pem", "utf8"),

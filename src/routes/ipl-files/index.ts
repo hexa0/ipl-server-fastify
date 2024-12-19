@@ -56,9 +56,6 @@ function addRoute(origin: string, remote: string) {
 				`https://${request.headers.host}/`
 			).pathname)
 		);
-
-		console.log(filePath)
-
 		if (filePath.endsWith("/") || filePath.endsWith("\\")) {
 			filePath = filePath.substring(0, filePath.length - 1);
 		}
