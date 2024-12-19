@@ -56,6 +56,7 @@ function addRoute(origin: string, remote: string) {
 				`https://${request.headers.host}/`
 			).pathname)
 		);
+
 		if (filePath.endsWith("/") || filePath.endsWith("\\")) {
 			filePath = filePath.substring(0, filePath.length - 1);
 		}
@@ -191,7 +192,7 @@ function addRoute(origin: string, remote: string) {
 }
 
 export default function init() {
-	if (structure.landingPageRoute) {
+	if (structure.landingPageRoute !== null) {
 		addRoute("/", structure.landingPageRoute);
 	}
 
