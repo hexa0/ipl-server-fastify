@@ -18,7 +18,7 @@ const structure: SiteStructure = {
 readdirSync("./apps/", {withFileTypes: true}).forEach((app) => {
 	const appConfig = <AppConfig>parse(readFileSync(join("./apps/", app.name, "app.jsonc"), "utf-8"))
 	
-	if (appConfig.structure.landingPageRoute) {
+	if (appConfig.structure.landingPageRoute !== null) {
 		structure.defaultApp = app.name
 		structure.landingPageRoute = "./" + join("apps", app.name, "static", appConfig.structure.landingPageRoute).replaceAll("\\", "/") + "/"
 	}
