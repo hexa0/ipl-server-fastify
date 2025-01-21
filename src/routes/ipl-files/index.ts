@@ -3,7 +3,7 @@ import { join, resolve } from "path";
 import { SiteStructure } from "../../type/data/SiteStructure";
 import { parse } from "jsonc-parser";
 import { readdirSync, readFileSync } from "fs";
-import { fileCache, folderCache } from "../../lib/util/cache/fsCache";
+import { fileCache, folderCache, readFileContent } from "../../lib/util/cache/fsCache";
 import { FileCache } from "../../type/data/FileCacheInformation";
 import { FolderCache } from "../../type/data/FolderCacheInformation";
 import { cwd } from "process";
@@ -15,21 +15,42 @@ const structure: SiteStructure = {
 	pathMap: {},
 };
 
-readdirSync("./apps/", {withFileTypes: true}).forEach((app) => {
-	const appConfig = <AppConfig>parse(readFileSync(join("./apps/", app.name, "app.jsonc"), "utf-8"))
-	
+readdirSync("./apps/", { withFileTypes: true }).forEach((app) => {
+	const appConfig = <AppConfig>(
+		parse(readFileSync(join("./apps/", app.name, "app.jsonc"), "utf-8"))
+	);
+
 	if (appConfig.structure.landingPageRoute !== null) {
-		structure.defaultApp = app.name
-		structure.landingPageRoute = "./" + join("apps", app.name, "static", appConfig.structure.landingPageRoute).replaceAll("\\", "/") + "/"
+		structure.defaultApp = app.name;
+		structure.landingPageRoute =
+			"./" +
+			join(
+				"apps",
+				app.name,
+				"static",
+				appConfig.structure.landingPageRoute
+			).replaceAll("\\", "/") +
+			"/";
 	}
 
 	Object.keys(appConfig.structure.pathMap).forEach((key: string) => {
-		structure.pathMap["/" + key] = "./" + join("apps", app.name, "static", appConfig.structure.pathMap[key]).replaceAll("\\", "/") + "/"
+		structure.pathMap["/" + key] =
+			"./" +
+			join(
+				"apps",
+				app.name,
+				"static",
+				appConfig.structure.pathMap[key]
+			).replaceAll("\\", "/") +
+			"/";
 	});
-})
+});
 
 const fsIndexTemplates = {
-	page: readFileSync("./apps/ipl/static/folderIndex/template/page.html", "utf-8"),
+	page: readFileSync(
+		"./apps/ipl/static/folderIndex/template/page.html",
+		"utf-8"
+	),
 	directoryItem: readFileSync(
 		"./apps/ipl/static/folderIndex/template/directoryItem.xml",
 		"utf-8"
@@ -38,7 +59,10 @@ const fsIndexTemplates = {
 		"./apps/ipl/static/folderIndex/template/directoryHeader.xml",
 		"utf-8"
 	),
-	watermark: readFileSync("./apps/ipl/static/folderIndex/template/watermark.xml", "utf-8"),
+	watermark: readFileSync(
+		"./apps/ipl/static/folderIndex/template/watermark.xml",
+		"utf-8"
+	),
 	indexFound: readFileSync(
 		"./apps/ipl/static/folderIndex/template/indexFound.xml",
 		"utf-8"
@@ -51,11 +75,15 @@ function addRoute(origin: string, remote: string) {
 	fastifyServer.get(`${origin}*`, async (request, reply) => {
 		let filePath = join(
 			remote,
-			decodeURIComponent(new URL(
-				request.url.replace(origin, ""),
-				`https://${request.headers.host}/`
-			).pathname)
+			decodeURIComponent(
+				new URL(
+					request.url.replace(origin, ""),
+					`https://${request.headers.host}/`
+				).pathname
+			)
 		);
+
+		const query: { [K: string]: string } = <any>request.query;
 
 		if (filePath.endsWith("/") || filePath.endsWith("\\")) {
 			filePath = filePath.substring(0, filePath.length - 1);
@@ -66,10 +94,7 @@ function addRoute(origin: string, remote: string) {
 		);
 
 		if (cachedFolder) {
-			if (
-				cachedFolder.indexHtmlPath &&
-				(<{ [K: string]: string }>request.query)["ignoreIndex"] !== "1"
-			) {
+			if (cachedFolder.indexHtmlPath && query["ignoreIndex"] !== "1") {
 				const requestUrl = new URL(
 					request.url,
 					`https://${request.headers.host}`
@@ -89,14 +114,63 @@ function addRoute(origin: string, remote: string) {
 		const cachedFile = <FileCache | undefined>await fileCache.get(filePath);
 
 		if (cachedFile) {
-			reply.header("content-type", cachedFile.mimeType);
-
 			reply.header("etag", cachedFile.hash);
-			reply.header("Content-Encoding", "br")
+
 			if (request.headers["if-none-match"] === cachedFile.hash) {
+				// reply.header("content-length", cachedFile.content.length);
+				// reply.header("content-type", cachedFile.mimeType);
 				return reply.code(304).send();
 			} else {
-				return reply.send(cachedFile.content);
+				if (cachedFile.mimeType.match("video") && query["partial"] !== "0") {
+					// reply.header("content-type", "multipart/byteranges; " + cachedFile.mimeType);
+					const rangeHeader = request.headers.range || `bytes=0-${Math.min(1024, cachedFile.content.length)}`
+					
+					const ranges = rangeHeader.split(",");
+					const unit = ranges[0].split("=")[0];
+					console.log(
+						rangeHeader,
+						unit,
+						ranges[0].split("=")[1].split("-")[0],
+						ranges[0].split("=")[1].split("-")[1]
+					);
+
+					const start = Number(
+						ranges[0].split("=")[1].split("-")[0]
+					);
+
+					const end =
+						Number(ranges[0].split("=")[1].split("-")[1]) ||
+						Math.min(cachedFile.content.length - 1, start + ((1024 * 1024) * 2));
+
+					if (unit !== "bytes") {
+						return reply.code(416).send("Range Not Satisfiable");
+					}
+
+					if (ranges.length > 1) {
+						return reply.code(416).send("Range Not Satisfiable");
+					}
+					
+					const fileContent = readFileContent(cachedFile, false, start, end + 1)
+
+					console.log(fileContent)
+
+					reply.header("content-length", fileContent.lengthOfSection + 1);
+					reply.header("content-range", `bytes ${start}-${end}/${fileContent.length}`);
+					reply.header("content-type", cachedFile.mimeType);
+					
+					return reply.code(206).send(fileContent.data)
+				} else {
+					const fileContent = readFileContent(cachedFile)
+					
+					reply.header("content-length", fileContent.lengthOfSection);
+					reply.header("content-type", cachedFile.mimeType);
+
+					if (fileContent.isCompressed) {
+						reply.header("content-encoding", "br");
+					}
+
+					return reply.send(fileContent.data);
+				}
 			}
 		} else {
 			if (cachedFolder) {
@@ -122,10 +196,7 @@ function addRoute(origin: string, remote: string) {
 				);
 
 				const upItem = fsIndexTemplates.directoryItem
-					.replace(
-						"fileIcon",
-						"/ipl/folderIndex/icon/folder"
-					)
+					.replace("fileIcon", "/ipl/folderIndex/icon/folder")
 					.replace(
 						"fileRedirect",
 						"../" +
@@ -152,15 +223,23 @@ function addRoute(origin: string, remote: string) {
 					const icon = file.isFile
 						? "/ipl/folderIndex/icon/file"
 						: "/ipl/folderIndex/icon/folder";
-					const href = redirectUrl.pathname + (file.isFile ? "" : "/") + (file.isFile ? "" : redirectUrl.search);
+					const href =
+						redirectUrl.pathname +
+						(file.isFile ? "" : "/") +
+						(file.isFile ? "" : redirectUrl.search);
 					const hidden = file.name.startsWith(".");
 
-					if (!hidden || (<{ [K: string]: string }>request.query)["ignoreHidden"] === "1") {
+					if (!hidden || query["ignoreHidden"] === "1") {
 						const item = fsIndexTemplates.directoryItem
 							.replace("fileIcon", icon)
 							.replace("fileRedirect", href)
 							.replace("fileName", file.name)
-							.replace("fileSoundClass", file.isFile ? "soundFileOpen" : "soundFolderOpen")
+							.replace(
+								"fileSoundClass",
+								file.isFile
+									? "soundFileOpen"
+									: "soundFolderOpen"
+							);
 						listDivContents += item;
 					}
 				});
@@ -178,7 +257,7 @@ function addRoute(origin: string, remote: string) {
 
 				page = page.replace("listDivContents", listDivContents);
 
-				if ((<{ [K: string]: string }>request.query)["listDivContentsOnly"] === "1") {
+				if (query["listDivContentsOnly"] === "1") {
 					return reply.send(listDivContents);
 				} else {
 					return reply.send(page);
@@ -205,14 +284,16 @@ export default function init() {
 
 	if (structure.defaultApp) {
 		fastifyServer.get("/favicon.ico", (request, reply) => {
-			fileCache.get(resolve(`./apps/${structure.defaultApp}/app.icon`)).then((got) => {
-				if (got) {
-					const fileCache = <FileCache>got;
-	
-					reply.header("content-type", fileCache.mimeType);
-					return reply.send(fileCache.content);
-				}
-			});
+			const iconFile = fileCache.get(resolve(`./apps/${structure.defaultApp}/app.icon`))
+
+			if (iconFile) {
+				reply.header("content-type", iconFile.mimeType);
+				reply.header("content-encoding", "br");
+				return reply.send(iconFile.compressedContent);
+			}
+			else {
+				return reply.callNotFound();
+			}
 		});
 	}
 }

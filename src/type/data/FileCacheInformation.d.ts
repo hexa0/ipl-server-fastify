@@ -39,4 +39,8 @@ export interface FileCache {
 		file contents
 	*/
 	content: Buffer;
+	/**
+		brotli compressed file contents
+	*/
+	compressedContent?: Buffer;
 }

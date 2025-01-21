@@ -6,6 +6,7 @@ export const fastifyServer = Fastify({
 	logger: true,
 	http2: true,
 	https: {
+		allowHTTP1: true, // fallback support for HTTP1
 		key: readFileSync("ssl/key.pem", "utf8"),
 		cert: readFileSync("ssl/cert.pem", "utf8"),
 	},
