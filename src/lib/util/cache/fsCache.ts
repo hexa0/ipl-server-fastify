@@ -15,7 +15,8 @@ import { SerializeDirents } from "../../../type/data/DirentSerialized";
 import { Presets, SingleBar } from "cli-progress";
 import { ServerConfig } from "../../var/serverConfig";
 import { parse } from "jsonc-parser";
-const {gzip} = require('node-gzip');
+import { promisify } from "util";
+import { brotliCompress } from "zlib";
 
 const forcedMimeTypes: Map<string, string> = new Map(
 	Object.entries(ServerConfig.mimeOverrides)
@@ -42,6 +43,8 @@ const pathCacheBar = new SingleBar(
 	{ clearOnComplete: true },
 	Presets.shades_classic
 );
+
+const compress = promisify(brotliCompress)
 
 async function definePath(name: string) {
 	const filePath = resolve(name);
@@ -79,7 +82,7 @@ async function definePath(name: string) {
 					const shouldGzip = true // mimeType.startsWith("text") || mimeType.match("json")
 
 					if (shouldGzip) {
-						fileData = await gzip(fileData)
+						fileData = await compress(fileData)
 					}
 
 					const cache: FileCache = {
