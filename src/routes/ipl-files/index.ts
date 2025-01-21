@@ -92,6 +92,7 @@ function addRoute(origin: string, remote: string) {
 			reply.header("content-type", cachedFile.mimeType);
 
 			reply.header("etag", cachedFile.hash);
+			reply.header("Content-Encoding", "gzip")
 			if (request.headers["if-none-match"] === cachedFile.hash) {
 				return reply.code(304).send();
 			} else {

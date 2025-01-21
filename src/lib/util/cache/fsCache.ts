@@ -14,6 +14,8 @@ import { fsExists } from "../fs/fsExists";
 import { SerializeDirents } from "../../../type/data/DirentSerialized";
 import { Presets, SingleBar } from "cli-progress";
 import { ServerConfig } from "../../var/serverConfig";
+import { parse } from "jsonc-parser";
+const {gzip} = require('node-gzip');
 
 const forcedMimeTypes: Map<string, string> = new Map(
 	Object.entries(ServerConfig.mimeOverrides)
@@ -62,16 +64,29 @@ async function definePath(name: string) {
 						? await wasMagic
 						: wasMagic;
 
+					const mimeType =
+						forcedMimeTypes.get(
+							filePath.substring(filePath.lastIndexOf(".") + 1)
+						) || magic.detect(fileData);
+					
+					if (mimeType.startsWith("application/json")) {
+						fileData = Buffer.from(
+							JSON.stringify(parse(fileData.toString("utf-8"))),
+							"utf-8"
+						);
+					}
+
+					const shouldGzip = true // mimeType.startsWith("text") || mimeType.match("json")
+
+					if (shouldGzip) {
+						fileData = await gzip(fileData)
+					}
+
 					const cache: FileCache = {
 						hash: createHash("sha256")
 							.update(fileData)
 							.digest("hex"),
-						mimeType:
-							forcedMimeTypes.get(
-								filePath.substring(
-									filePath.lastIndexOf(".") + 1
-								)
-							) || magic.detect(fileData),
+						mimeType: mimeType,
 						date: {
 							createdMs: pathStat.ctimeMs,
 							modifiedMs: pathStat.mtimeMs,

@@ -133,3 +133,4 @@ dist
 ssl/*.pem
 apps/hexa/
 src/routes/hexa-*
+config.jsonc
