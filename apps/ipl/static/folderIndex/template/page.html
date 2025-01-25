@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="stylesheet" href="/ipl/folderIndex/main.css?v=1" />
+		<link rel="stylesheet" href="/ipl/folderIndex/main.css" />
 		<link
 			rel="icon"
 			type="image/x-icon"
@@ -16,7 +16,7 @@
 		<div class="list">listDivContents</div>
 		<video class="backgroundVideo" autoplay muted loop preload disablePictureInPicture tabindex="-1">
 			<source
-				src="/ipl/folderIndex/video/background.mp4?partial=1"
+				src="/ipl/folderIndex/video/background.mp4"
 				type="video/mp4"
 			/>
 		</video>
@@ -102,11 +102,13 @@
 
 				const fetchUrl = new URL(targetUrl);
 				fetchUrl.searchParams.set("listDivContentsOnly", "1");
-				fetchUrl.searchParams.set("ignoreIndex", "1");
 				const redirectUrl = new URL(targetUrl);
 				redirectUrl.searchParams.delete("listDivContentsOnly");
-				if (!redirectUrl.searchParams.has("ignoreIndex")) {
-					redirectUrl.searchParams.set("ignoreIndex", "1");
+				if (link.classList[1] !== "soundFileOpen") {
+					fetchUrl.searchParams.set("ignoreIndex", "1");
+					if (!redirectUrl.searchParams.has("ignoreIndex")) {
+						redirectUrl.searchParams.set("ignoreIndex", "1");
+					}
 				}
 
 				if (link.classList.contains("soundFileOpen")) {

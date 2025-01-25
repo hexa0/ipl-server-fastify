@@ -69,6 +69,15 @@ const fsIndexTemplates = {
 	),
 };
 
+// files bigger than 10mb will NOT cache, this is due to a bug with chromium and cloudflare
+// that results in the connection being fully blocked after the request is recieved
+// further requests to the origin server will state the connection failed (a client skill issue)
+// no idea what the limit is here but this is some bullshit work around (always chromes fault)
+const CACHE_MAXIMUM = (1024 * 1024) * 10
+// browsers get greedy and request the whole file as the next chunk after the first 1024 bytes get sent
+// this forces them to back off and allow the file to stream normally
+const PARTIAL_CHUNK_MAXIMUM = (1024 * 1024) * 2
+
 function addRoute(origin: string, remote: string) {
 	remote = resolve(remote);
 
@@ -121,18 +130,24 @@ function addRoute(origin: string, remote: string) {
 				// reply.header("content-type", cachedFile.mimeType);
 				return reply.code(304).send();
 			} else {
-				if (cachedFile.mimeType.match("video") && query["partial"] !== "0") {
+				const isMedia = cachedFile.mimeType.match("video") || cachedFile.mimeType.match("audio")
+				const queryForcesPartialOff = query["partial"] === "0"
+				const queryForcesPartialOn = query["partial"] === "1"
+				const isDownload = request.headers.accept === "*/*" && !queryForcesPartialOn && !request.headers.range
+				// ^ fails for chromium but who gives a shit lol
+				// if you're downloading media assets from my site u better use a good browser
+
+				const shouldStream =
+					((isMedia && !queryForcesPartialOff) ||
+						queryForcesPartialOn) &&
+					!isDownload;
+					
+				if (shouldStream) {
 					// reply.header("content-type", "multipart/byteranges; " + cachedFile.mimeType);
-					const rangeHeader = request.headers.range || `bytes=0-${Math.min(1024, cachedFile.content.length)}`
+					const rangeHeader = request.headers.range || `bytes=0-${Math.min(1023, cachedFile.content.length - 1)}`
 					
 					const ranges = rangeHeader.split(",");
 					const unit = ranges[0].split("=")[0];
-					console.log(
-						rangeHeader,
-						unit,
-						ranges[0].split("=")[1].split("-")[0],
-						ranges[0].split("=")[1].split("-")[1]
-					);
 
 					const start = Number(
 						ranges[0].split("=")[1].split("-")[0]
@@ -140,7 +155,7 @@ function addRoute(origin: string, remote: string) {
 
 					const end =
 						Number(ranges[0].split("=")[1].split("-")[1]) ||
-						Math.min(cachedFile.content.length - 1, start + ((1024 * 1024) * 2));
+						Math.min(cachedFile.content.length - 1, start + PARTIAL_CHUNK_MAXIMUM - 1);
 
 					if (unit !== "bytes") {
 						return reply.code(416).send("Range Not Satisfiable");
@@ -152,11 +167,10 @@ function addRoute(origin: string, remote: string) {
 					
 					const fileContent = readFileContent(cachedFile, false, start, end + 1)
 
-					console.log(fileContent)
-
 					reply.header("content-length", fileContent.lengthOfSection + 1);
 					reply.header("content-range", `bytes ${start}-${end}/${fileContent.length}`);
 					reply.header("content-type", cachedFile.mimeType);
+					reply.header("cache-control", "max-age=0, no-cache, no-store");
 					
 					return reply.code(206).send(fileContent.data)
 				} else {
@@ -167,6 +181,10 @@ function addRoute(origin: string, remote: string) {
 
 					if (fileContent.isCompressed) {
 						reply.header("content-encoding", "br");
+					}
+
+					if (isDownload || cachedFile.content.length > CACHE_MAXIMUM) {
+						reply.header("cache-control", "max-age=0, no-cache, no-store");
 					}
 
 					return reply.send(fileContent.data);
@@ -285,11 +303,18 @@ export default function init() {
 	if (structure.defaultApp) {
 		fastifyServer.get("/favicon.ico", (request, reply) => {
 			const iconFile = fileCache.get(resolve(`./apps/${structure.defaultApp}/app.icon`))
-
+			
 			if (iconFile) {
+				const fileContent = readFileContent(iconFile);
+
+				reply.header("content-length", fileContent.lengthOfSection);
 				reply.header("content-type", iconFile.mimeType);
-				reply.header("content-encoding", "br");
-				return reply.send(iconFile.compressedContent);
+	
+				if (fileContent.isCompressed) {
+					reply.header("content-encoding", "br");
+				}
+	
+				return reply.send(fileContent.data);
 			}
 			else {
 				return reply.callNotFound();
