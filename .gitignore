@@ -132,5 +132,8 @@ dist
 # my website content/apis
 ssl/*.pem
 apps/hexa/
+apps/streamavi/
+apps/mvs_webgl_pwa/
+apps/banner/
 src/routes/hexa-*
 config.jsonc
