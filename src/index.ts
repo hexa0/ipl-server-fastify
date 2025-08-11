@@ -1,4 +1,4 @@
-console.log("init!")
+console.log(`init! running ${process.version}`)
 
 import { startServer } from "./server";
 startServer();
