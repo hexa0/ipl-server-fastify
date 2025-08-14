@@ -114,9 +114,7 @@ async function definePath(name: string) {
 							
 							if (mimeType.startsWith("text/html")) {
 								fileData = minifyHTML(fileData, {
-									minify_css: true, // minify any inline css
-									// sadly inline js minification creates errors
-									// minify_js: true,
+									// sadly inline js and css minification creates errors and problems
 								});
 							}
 
