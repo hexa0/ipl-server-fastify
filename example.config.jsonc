@@ -1,4 +1,7 @@
 {
+	// If files should be automatically minified when possible, this is automatically enabled when omitted from the config
+	"optimizeFiles": true,
+
 	// HTTP and HTTPS ports
 	"network": {
 		"port": {

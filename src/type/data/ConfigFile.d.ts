@@ -1,4 +1,6 @@
 export interface ConfigFile {
+	optimizeFiles: boolean?;
+
 	network: {
 		port: {
 			http: number;

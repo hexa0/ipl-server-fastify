@@ -13,10 +13,13 @@ import { fsExists } from "../fs/fsExists";
 import { SerializeDirents } from "../../../type/data/DirentSerialized";
 import { Presets, SingleBar } from "cli-progress";
 import { ServerConfig } from "../../var/serverConfig";
-import { parse } from "jsonc-parser";
 import { brotliCompressAsync } from "../data/brotliCompress";
 import assert from "assert";
 import { constants as zlibConstants } from "zlib";
+import { parse as parseJsonC } from "jsonc-parser";
+import { minify as minifyHTML } from "@minify-html/node";
+import { transform as minifyCSS } from "lightningcss";
+import { optimize as minifySVG } from 'svgo';
 
 const forcedMimeTypes: Map<string, string> = new Map(
 	Object.entries(ServerConfig.mimeOverrides)
@@ -99,11 +102,72 @@ async function definePath(name: string) {
 							filePath.substring(filePath.lastIndexOf(".") + 1)
 						) || magic.detect(fileData);
 					
-					if (mimeType.startsWith("application/json")) {
-						fileData = Buffer.from(
-							JSON.stringify(parse(fileData.toString("utf-8"))),
-							"utf-8"
-						);
+
+					if (ServerConfig.optimizeFiles == true || ServerConfig.optimizeFiles == null) {
+						try {
+							if (mimeType.startsWith("application/json")) {
+								fileData = Buffer.from(
+									JSON.stringify(parseJsonC(fileData.toString("utf-8"))),
+									"utf-8"
+								);
+							}
+							
+							if (mimeType.startsWith("text/html")) {
+								fileData = minifyHTML(fileData, {
+									minify_css: true, // minify any inline css
+									// sadly inline js minification creates errors
+									// minify_js: true,
+								});
+							}
+
+							if (mimeType.startsWith("text/css")) {
+								fileData = Buffer.from(minifyCSS({
+									filename: "dummy.css",
+									code: fileData,
+									minify: true,
+									sourceMap: false
+								}).code);
+							}
+
+							if (mimeType.startsWith("image/svg+xml")) {
+								fileData = Buffer.from(minifySVG(fileData.toString("utf-8"), {
+									path: filePath,
+									multipass: true,
+									plugins: [
+										{
+											name: 'preset-default',
+											params: {
+												overrides: {
+													cleanupIds: false
+												},
+											},
+										},
+										"removeXMLProcInst", // mine type is already computed before optimizations, this is safe
+										"removeOffCanvasPaths", // culling
+										"sortAttrs", // improve  compression
+										"removeTitle", // this should always be provided by the page itself
+										{
+											name: "removeDesc",
+											params: {
+												removeAny: true
+											}
+										}, // same deal as the previous plugin
+										"removeDimensions" // not needed
+									]
+								}).data)
+							}
+						}
+						catch {
+							console.warn(`optimization failed for ${filePath}`)
+						}
+					}
+					else {
+						if (mimeType.startsWith("application/json") && filePath.endsWith(".jsonc")) {
+							fileData = Buffer.from(
+								JSON.stringify(parseJsonC(fileData.toString("utf-8"))),
+								"utf-8"
+							);
+						}
 					}
 
 					const shouldCompress = mimeType.startsWith("text") || mimeType.match("json")
