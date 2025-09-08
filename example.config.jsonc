@@ -35,5 +35,16 @@
 		"wasm": "application/wasm",
 		"json": "application/json; charset=utf-8",
 		"jsonc": "application/json; charset=utf-8"
+	},
+
+	"mimeManualCacheTime": {
+		/*
+			all mime types here will only be cached for the specified amount of minutes
+		*/
+
+		"text/plain": 1,
+		"text/html": 1,
+		"application/json": 1,
+		"image/": 5
 	}
 }

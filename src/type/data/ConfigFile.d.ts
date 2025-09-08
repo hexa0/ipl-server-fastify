@@ -14,5 +14,11 @@ export interface ConfigFile {
 		};
 	};
 
-	mimeOverrides: any;
+	mimeOverrides: {
+		[key: string]: string
+	};
+
+	mimeManualCacheTime: {
+		[key: string]: number
+	};
 }
