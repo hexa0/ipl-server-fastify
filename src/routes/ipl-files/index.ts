@@ -8,6 +8,7 @@ import { FileCache } from "../../type/data/FileCacheInformation";
 import { FolderCache } from "../../type/data/FolderCacheInformation";
 import { cwd } from "process";
 import { AppConfig } from "../../type/data/AppConfig";
+import { ServerConfig } from "../../lib/var/serverConfig";
 
 const structure: SiteStructure = {
 	landingPageRoute: null,
@@ -183,8 +184,20 @@ function addRoute(origin: string, remote: string) {
 						reply.header("content-encoding", "br");
 					}
 
+					let cacheAge;
+
+					for (const key in ServerConfig.mimeManualCacheTime) {
+						if (cachedFile.mimeType.includes(key)) {
+							cacheAge = `max-age=${ServerConfig.mimeManualCacheTime[key] * 60}`
+						}
+					}
+
 					if (isDownload || cachedFile.content.length > CACHE_MAXIMUM) {
 						reply.header("cache-control", "max-age=0, no-cache, no-store");
+					}
+					else if (cacheAge) {
+						reply.header("CDN-Cache-Control", cacheAge);
+						reply.header("cache-control", cacheAge);
 					}
 
 					return reply.send(fileContent.data);
