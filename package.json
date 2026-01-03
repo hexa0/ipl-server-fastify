@@ -18,7 +18,7 @@
     "fastify": "^5.2.1",
     "jsonc-parser": "^3.3.1",
     "lightningcss": "^1.30.2",
-    "mime-types": "^2.1.35",
+    "mime-types": "^3.0.2",
     "node-watch": "^0.7.4",
     "require-all": "^3.0.0",
     "svgo": "^4.0.0",
