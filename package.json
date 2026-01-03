@@ -22,7 +22,7 @@
     "node-watch": "^0.7.4",
     "require-all": "^3.0.0",
     "svgo": "^4.0.0",
-    "wasmagic": "^1.0.2"
+    "wasmagic": "^1.0.7"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.6",
