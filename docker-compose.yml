@@ -7,6 +7,7 @@ services:
             - ./config.jsonc:/app/config.jsonc
             - ./example.config.jsonc:/app/example.config.jsonc
             - ./apps:/app/apps
+            - ./ssl:/app/ssl
         env_file:
             - .env
         ports:

@@ -166,6 +166,7 @@ function addRoute(origin: string, remote: string) {
 					
 					const fileContent = readFileContent(cachedFile, false, start, end + 1)
 
+					reply.header("transfer-encoding", "chunked");
 					reply.header("content-length", fileContent.lengthOfSection + 1);
 					reply.header("content-range", `bytes ${start}-${end}/${fileContent.length}`);
 					reply.header("content-type", cachedFile.mimeType);
