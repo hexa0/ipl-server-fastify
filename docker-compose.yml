@@ -1,0 +1,14 @@
+services:
+    ipl:
+        build: .
+        container_name: ipl-fastify
+        restart: always
+        volumes:
+            - ./config.jsonc:/app/config.jsonc
+            - ./example.config.jsonc:/app/example.config.jsonc
+            - ./apps:/app/apps
+        env_file:
+            - .env
+        ports:
+            - "4343:4343"
+            - "8080:8080"

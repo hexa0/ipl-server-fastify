@@ -1,0 +1,7 @@
+node_modules
+.git
+.github
+.env
+apps
+config.jsonc
+example.config.jsonc

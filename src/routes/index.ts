@@ -1,15 +1,17 @@
-const requireAll = require("require-all");
-const routes = requireAll(__dirname);
+import { Glob } from "bun";
+import path from "node:path";
 
-export function initRoutes() {
+const glob = new Glob("src/routes/**/index.ts");
+
+export async function initRoutes() {
 	console.log("setup routes");
 
-	for (const name in requireAll(__dirname)) {
-		const RouteInit = routes[name].index?.default;
+	for await (const file of glob.scan(".")) {
+		const routeModule = await import(path.resolve(file));
 
-		if (RouteInit) {
-			console.log(`init route: ${name}`);
-			RouteInit();
+		if (typeof routeModule.default === "function") {
+			console.log(`init route: ${file}`);
+			routeModule.default();
 		}
 	}
 }

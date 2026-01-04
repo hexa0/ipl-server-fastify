@@ -137,4 +137,3 @@ apps/mvs_webgl_pwa/
 apps/banner/
 src/routes/hexa-*
 config.jsonc
-ecosystem.config.js
