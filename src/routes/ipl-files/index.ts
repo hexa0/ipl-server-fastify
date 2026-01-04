@@ -134,14 +134,12 @@ function addRoute(origin: string, remote: string) {
 				const isMedia = cachedFile.mimeType.match("video") || cachedFile.mimeType.match("audio")
 				const queryForcesPartialOff = query["partial"] === "0"
 				const queryForcesPartialOn = query["partial"] === "1"
-				const isDownload = request.headers.accept === "*/*" && !queryForcesPartialOn && !request.headers.range
 				// ^ fails for chromium but who gives a shit lol
 				// if you're downloading media assets from my site u better use a good browser
 
 				const shouldStream =
 					((isMedia && !queryForcesPartialOff) ||
-						queryForcesPartialOn) &&
-					!isDownload;
+						queryForcesPartialOn);
 					
 				if (shouldStream) {
 					// reply.header("content-type", "multipart/byteranges; " + cachedFile.mimeType);
@@ -192,7 +190,7 @@ function addRoute(origin: string, remote: string) {
 						}
 					}
 
-					if (isDownload || cachedFile.content.length > CACHE_MAXIMUM) {
+					if (cachedFile.content.length > CACHE_MAXIMUM) {
 						reply.header("cache-control", "max-age=0, no-cache, no-store");
 					}
 					else if (cacheAge) {
