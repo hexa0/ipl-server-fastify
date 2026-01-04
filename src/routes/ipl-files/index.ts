@@ -75,9 +75,6 @@ const fsIndexTemplates = {
 // further requests to the origin server will state the connection failed (a client skill issue)
 // no idea what the limit is here but this is some bullshit work around (always chromes fault)
 const CACHE_MAXIMUM = (1024 * 1024) * 10
-// browsers get greedy and request the whole file as the next chunk after the first 1024 bytes get sent
-// this forces them to back off and allow the file to stream normally
-const PARTIAL_CHUNK_MAXIMUM = (1024 * 1024) * 2
 
 function addRoute(origin: string, remote: string) {
 	remote = resolve(remote);
@@ -131,18 +128,12 @@ function addRoute(origin: string, remote: string) {
 				// reply.header("content-type", cachedFile.mimeType);
 				return reply.code(304).send();
 			} else {
-				const isMedia = cachedFile.mimeType.match("video") || cachedFile.mimeType.match("audio")
+				const clientWantsRange = request.headers.range != null
 				const queryForcesPartialOff = query["partial"] === "0"
-				const queryForcesPartialOn = query["partial"] === "1"
-				// ^ fails for chromium but who gives a shit lol
-				// if you're downloading media assets from my site u better use a good browser
 
-				const shouldStream =
-					((isMedia && !queryForcesPartialOff) ||
-						queryForcesPartialOn);
+				const shouldStream = clientWantsRange && !queryForcesPartialOff
 					
 				if (shouldStream) {
-					// reply.header("content-type", "multipart/byteranges; " + cachedFile.mimeType);
 					const rangeHeader = request.headers.range || `bytes=0-${Math.min(1023, cachedFile.content.length - 1)}`
 					
 					const ranges = rangeHeader.split(",");
@@ -154,7 +145,7 @@ function addRoute(origin: string, remote: string) {
 
 					const end =
 						Number(ranges[0].split("=")[1].split("-")[1]) ||
-						Math.min(cachedFile.content.length - 1, start + PARTIAL_CHUNK_MAXIMUM - 1);
+						cachedFile.content.length - 1;
 
 					if (unit !== "bytes") {
 						return reply.code(416).send("Range Not Satisfiable");
@@ -166,9 +157,9 @@ function addRoute(origin: string, remote: string) {
 					
 					const fileContent = readFileContent(cachedFile, false, start, end + 1)
 
-					reply.header("transfer-encoding", "chunked");
-					reply.header("content-length", fileContent.lengthOfSection + 1);
+					reply.header("content-length", fileContent.lengthOfSection);
 					reply.header("content-range", `bytes ${start}-${end}/${fileContent.length}`);
+					reply.header("accept-ranges", `bytes`);
 					reply.header("content-type", cachedFile.mimeType);
 					reply.header("cache-control", "max-age=0, no-cache, no-store");
 					
@@ -177,6 +168,7 @@ function addRoute(origin: string, remote: string) {
 					const fileContent = readFileContent(cachedFile)
 					
 					reply.header("content-length", fileContent.lengthOfSection);
+					reply.header("accept-ranges", `bytes`);
 					reply.header("content-type", cachedFile.mimeType);
 
 					if (fileContent.isCompressed) {
