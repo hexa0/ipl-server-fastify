@@ -43,8 +43,14 @@
 		*/
 
 		"text/plain": 1,
-		"text/html": 1,
+		"text/html": 15,
+		"text/css": 15,
 		"application/json": 1,
-		"image/": 5
+		"text/javascript": 1,
+		"image/": 60,
+		"audio/": 120,
+		"video/": 1440, // 1 day
+		"application/vnd.ms-opentype": 1440,
+		"font/": 1440,
 	}
 }

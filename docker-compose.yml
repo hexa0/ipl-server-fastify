@@ -8,8 +8,6 @@ services:
             - ./example.config.jsonc:/app/example.config.jsonc
             - ./apps:/app/apps
             - ./ssl:/app/ssl
-        env_file:
-            - .env
         ports:
             - "4343:4343"
             - "8080:8080"
