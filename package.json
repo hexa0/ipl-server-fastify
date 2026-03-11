@@ -15,7 +15,7 @@
 		"@types/node": "^25.2.3",
 		"axios": "^1.13.4",
 		"cli-progress": "^3.12.0",
-		"fastify": "^5.7.4",
+		"fastify": "^5.8.2",
 		"jsonc-parser": "^3.3.1",
 		"lightningcss": "^1.31.1",
 		"mime-types": "^3.0.2",
