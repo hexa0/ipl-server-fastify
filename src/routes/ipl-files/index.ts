@@ -122,6 +122,7 @@ function addRoute(origin: string, remote: string) {
 
 		if (cachedFile) {
 			reply.header("etag", cachedFile.hash);
+			reply.header("last-modified", new Date(cachedFile.date.modifiedMs).toUTCString());
 
 			if (request.headers["if-none-match"] === cachedFile.hash) {
 				// reply.header("content-length", cachedFile.content.length);
