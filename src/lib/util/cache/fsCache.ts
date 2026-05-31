@@ -113,9 +113,9 @@ async function definePath(name: string) {
 							}
 							
 							if (mimeType.startsWith("text/html")) {
-								fileData = minifyHTML(fileData, {
+								fileData = Buffer.from(minifyHTML(fileData, {
 									// sadly inline js and css minification creates errors and problems
-								});
+								}));
 							}
 
 							if (mimeType.startsWith("text/css")) {
@@ -168,7 +168,7 @@ async function definePath(name: string) {
 						}
 					}
 
-					const shouldCompress = mimeType.startsWith("text") || mimeType.match("json")
+					const shouldCompress = mimeType.startsWith("text") || mimeType.match("json") || mimeType.match("octet")
 
 					const cache: FileCache = {
 						hash: createHash("sha256")
