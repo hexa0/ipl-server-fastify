@@ -8,7 +8,7 @@
         "@minify-html/node": "^0.18.1",
         "@nodelib/fs.walk": "^3.0.1",
         "@types/node": "^26.1.1",
-        "axios": "^1.18.1",
+        "axios": "^1.18.0",
         "cli-progress": "^3.12.0",
         "fastify": "^5.10.0",
         "jsonc-parser": "^3.3.1",
@@ -16,7 +16,7 @@
         "mime-types": "^3.0.2",
         "node-watch": "^0.7.4",
         "svgo": "^4.0.2",
-        "wasmagic": "^1.0.8",
+        "wasmagic": "^1.0.10",
       },
       "devDependencies": {
         "@types/bun": "^1.3.14",
@@ -441,7 +441,7 @@
 
     "v8-compile-cache-lib": ["v8-compile-cache-lib@3.0.1", "", {}, "sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg=="],
 
-    "wasmagic": ["wasmagic@1.0.8", "", {}, "sha512-YXfUxQT0+dX5tbuf+7ah7Eh0I9Ak/opYRNcUh3mGIulKJRHzKIkw5yDr1gX4onSH8t9D0xTSI00JcZKpf+oRRQ=="],
+    "wasmagic": ["wasmagic@1.0.10", "", {}, "sha512-63NvyRR/UYnUYXTBlzdter6t52KIs3dCC0D3lIHC/LgzkFhlYGd+StS2HO2cqWaixcI92tstUJ+QYSiSl7UWFg=="],
 
     "wrappy": ["wrappy@1.0.2", "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
 
