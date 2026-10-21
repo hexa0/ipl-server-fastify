@@ -21,7 +21,7 @@
 		"mime-types": "^3.0.2",
 		"node-watch": "^0.7.4",
 		"svgo": "^4.1.0",
-		"wasmagic": "^1.0.10"
+		"wasmagic": "^1.0.12"
 	},
 	"devDependencies": {
 		"@types/bun": "^1.4.2",

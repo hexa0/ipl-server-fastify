@@ -16,7 +16,7 @@
         "mime-types": "^3.0.2",
         "node-watch": "^0.7.4",
         "svgo": "^4.1.0",
-        "wasmagic": "^1.0.10",
+        "wasmagic": "^1.0.12",
       },
       "devDependencies": {
         "@types/bun": "^1.4.2",
@@ -441,7 +441,7 @@
 
     "v8-compile-cache-lib": ["v8-compile-cache-lib@3.0.1", "", {}, "sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg=="],
 
-    "wasmagic": ["wasmagic@1.0.10", "", {}, "sha512-63NvyRR/UYnUYXTBlzdter6t52KIs3dCC0D3lIHC/LgzkFhlYGd+StS2HO2cqWaixcI92tstUJ+QYSiSl7UWFg=="],
+    "wasmagic": ["wasmagic@1.0.12", "", {}, "sha512-XEhCmRsO/6iYyBr9Vfckj+YfkxBakdf2m6kryhIPr0FaT+tnZU4cokSzSij1S+j2Oy0s2lon7fZX57C9WQ2MIg=="],
 
     "wrappy": ["wrappy@1.0.2", "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
 
